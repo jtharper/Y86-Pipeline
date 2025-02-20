@@ -2,7 +2,7 @@
 #include <iomanip>
 #include "Memory.h"
 #include "Tools.h"
-
+//JT harper
 //memInstance will be initialized to the single instance
 //of the Memory class
 Memory * Memory::memInstance = NULL;
