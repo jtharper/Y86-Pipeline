@@ -250,7 +250,13 @@ bool Loader::isLoaded()
  */
 bool Loader::badFile(std::string filename)
 {
-   //Hint: use std::string length method and C strcmp (or std::string find
-   //      or std::string at or ...)
-   return true;
+  // Convert std::string to C-string
+    const char* c_filename = filename.c_str();
+    // Check last three characters are a .yo file
+    if (strcmp(c_filename + filename.length() - 3, ".yo") == 0 && filename.length() >= 4) 
+    {
+        return false;
+    }
+    // If all checks passed, the filename is properly formed
+    return true;
 }
