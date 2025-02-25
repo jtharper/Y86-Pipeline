@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "Memory.C": "cpp",
-        "ConditionCodes.C": "cpp",
-        "RegisterFile.C": "cpp"
-    }
-}
