@@ -82,6 +82,7 @@ bool Loader::hasAddress(std::string line)
 bool Loader::hasData(std::string line)
 {
     // If char at DATABEGIN (7) is not a space, then data exists
+    return(!line.empty() && line[DATABEGIN] == ' ');
 }
 
 
