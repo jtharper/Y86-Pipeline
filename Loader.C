@@ -61,7 +61,10 @@ Loader::Loader(int argc, char * argv[])
  */
 bool Loader::hasAddress(std::string line)
 {
+    // A valid address line starts with '0'
+    return (!line.empty() && line[0] == '0');
 }
+
 
 /*
  * hasData
@@ -78,7 +81,9 @@ bool Loader::hasAddress(std::string line)
  */
 bool Loader::hasData(std::string line)
 {
+    // If char at DATABEGIN (7) is not a space, then data exists
 }
+
 
 /*
  * hasComment
@@ -91,7 +96,10 @@ bool Loader::hasData(std::string line)
  */
 bool Loader::hasComment(std::string line)
 {
+    // True if line has length > 28 and '|' at index 28
+   
 }
+
 
 /*
  * loadLine
@@ -110,6 +118,7 @@ void Loader::loadLine(std::string line)
    //that represent the address into a number.
    //Also, use the convert method for each byte of data.
 }
+
 
 /*
  * convert
