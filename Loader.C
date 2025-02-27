@@ -233,7 +233,22 @@ bool Loader::hasErrors(std::string line)
  */
 bool Loader::errorData(std::string line, int32_t & numDBytes)
 {
-   //Hint: use isxdigit and isSpaces
+    numDBytes = 0; // Initialize the number of data bytes
+
+    // Iterate through the data section, ensuring valid hex pairs
+    int i = DATABEGIN;
+    while (i + 1 < line.length() && line[i] != ' ' && i < COMMENT)
+    {
+        // Ensure both characters in the pair are valid hex digits
+        if (!isxdigit(line[i]) || !isxdigit(line[i + 1]))
+            return true; // Invalid hex character found
+
+        numDBytes++;  // Increment count of valid data bytes
+        i += 2;       // Move to the next pair
+    }
+
+    // Ensure the remaining characters up to COMMENT are spaces
+    return !isSpaces(line, i, COMMENT);
 }
 
 /*
