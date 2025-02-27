@@ -118,6 +118,32 @@ void Loader::loadLine(std::string line)
    //Use the convert method to convert the characters
    //that represent the address into a number.
    //Also, use the convert method for each byte of data.
+   // Extract the address from the line
+    int32_t addr = convert(line, ADDRBEGIN, ADDREND - ADDRBEGIN);
+    bool imem_error;
+
+    // Starting position for data in the line
+    int32_t dataStart = DATABEGIN;
+
+    // Load data byte by byte into memory
+    while (dataStart < line.size() && line[dataStart] != ' ' && dataStart < COMMENT) {
+        // Convert two hex characters to a byte
+        uint8_t dataByte = static_cast<uint8_t>(convert(line, dataStart, 2));
+
+        // Get the singleton instance and store the byte into memory at the current address
+        Memory::getInstance()->putByte(dataByte, addr, imem_error);
+
+        // If there's a memory error, exit the function
+        if (imem_error) {
+            return;
+        }
+
+        // Move to the next byte position in the line
+        dataStart += 2;
+
+        // Increment address for the next byte
+        addr++;
+    }
 }
 
 
@@ -260,13 +286,16 @@ bool Loader::isLoaded()
  */
 bool Loader::badFile(std::string filename)
 {
-  // Convert std::string to C-string
-    const char* c_filename = filename.c_str();
-    // Check last three characters are a .yo file
-    if (strcmp(c_filename + filename.length() - 3, ".yo") == 0 && filename.length() >= 4) 
-    {
+  // Check if the filename is at least 4 characters long
+    if (filename.length() < 4) {
+        return true;
+    }
+
+    // Check if the filename ends with ".yo"
+    if (filename.substr(filename.length() - 3) == ".yo") {
         return false;
     }
-    // If all checks passed, the filename is properly formed
+
+    // If any check fails, the filename is improperly formed
     return true;
 }
