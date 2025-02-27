@@ -97,9 +97,9 @@ bool Loader::hasData(std::string line)
  */
 bool Loader::hasComment(std::string line)
 {
-    // True if line has length > 28 and '|' at index 28
-   
+    return (line.length() > COMMENT && line[COMMENT] == '|');
 }
+
 
 
 /*
