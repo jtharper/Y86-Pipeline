@@ -262,10 +262,14 @@ bool Loader::errorAddr(std::string line)
  * @return true, if the characters in index from start to end are spaces
  *         false, otherwise
  */
-bool Loader::isSpaces(std::string line, int32_t start, int32_t end)
-{
+bool Loader::isSpaces(std::string line, int32_t start, int32_t end) {
+    for (int32_t i = start; i <= end && i < line.size(); i++) {
+        if (line[i] != ' ') {
+            return false;
+        }
+    }
+    return true;
 }
-
 /*
  * isLoaded
  * getter for the private loaded data member
