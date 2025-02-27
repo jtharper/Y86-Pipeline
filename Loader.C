@@ -136,7 +136,7 @@ void Loader::loadLine(std::string line)
  */
 int32_t Loader::convert(std::string line, int32_t start, int32_t len)
 {
-   //Hint: you need something to convert a string to an int such as strtol 
+   return strtol(line.substr(start, len).c_str(), nullptr, 16);
 }
 
 /*
