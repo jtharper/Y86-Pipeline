@@ -176,42 +176,39 @@ int32_t Loader::convert(std::string line, int32_t start, int32_t len)
  */
 bool Loader::hasErrors(std::string line)
 {
-   //checking for errors in a particular order can significantly 
-   //simplify your code
-   //1) line is at least COMMENT characters long and contains a '|' in 
-   //   column COMMENT. If not, return true
-   //   Hint: use hasComment
-   //
-   //2) check whether line has an address.  If it doesn't,
-   //   return result of isSpaces (line must be all spaces up
-   //   to the | character)
-   //   Hint: use hasAddress and isSpaces
-   //
-   //3) return true if the address is invalid
-   //   Hint: use errorAddress 
-   //
-   //4) check whether the line has data. If it doesn't
-   //   return result of isSpaces (line must be all spaces from
-   //   after the address up to the | character)
-   //   Hint: use hasData and isSpaces
-   //
-   //5) if you get past 4), line has an address and data. Check to
-   //   make sure the data is valid using errorData
-   //   Hint: use errorData
-   //
-   //6) if you get past 5), line has a valid address and valid data.
-   //   Make sure that the address on this line is > the last address
-   //   stored to (lastAddress is a private data member)
-   //   Hint: use convert to convert address to a number and compare
-   //   to lastAddress
-   //
-   //7) Make sure that the last address of the data to be stored
-   //   by this line doesn't exceed the memory size
-   //   Hint: use numDBytes as set by errorData, MEMSIZE in Memory.h,
-   //         and addr returned by convert
+    int32_t numDBytes;
 
-   // if control reaches here, no errors found
-   return false;
+    // 1) Check if the line has a comment correctly formatted
+    if (!hasComment(line))
+        return true;
+
+    // 2) If no address is present, ensure the line is only spaces before the comment
+    if (!hasAddress(line))
+        return isSpaces(line, 0, COMMENT);
+
+    // 3) Check if the address is valid
+    if (errorAddr(line))
+        return true;
+
+    // 4) If no data is present, ensure only spaces remain before the comment
+    if (!hasData(line))
+        return isSpaces(line, ADDREND + 1, COMMENT);
+
+    // 5) Validate data formatting
+    if (errorData(line, numDBytes))
+        return true;
+
+    // 6) Ensure addresses increase (lastAddress must always increase)
+    int32_t addr = convert(line, ADDRBEGIN, ADDREND - ADDRBEGIN + 1);
+    if (addr <= lastAddress)
+        return true;
+
+    // 7) Ensure memory doesn't exceed MEMSIZE
+    if ((addr + numDBytes) > MEMSIZE)
+        return true;
+
+    lastAddress = addr;  // Update last processed address
+    return false;  // No errors detected
 }
 
 /*
