@@ -263,6 +263,24 @@ bool Loader::errorData(std::string line, int32_t & numDBytes)
 bool Loader::errorAddr(std::string line)
 {
    //Hint: use isxdigit
+   // Ensure the minimum length for checking address format is met
+    if (line.size() < 6) {
+        return true;
+    }
+    
+    // Check for the address format: 0xHHH:
+    if (line[0] != '0' || line[1] != 'x' || line[5] != ':') {
+        return true;
+    }
+    
+    // Validate that characters 2 to 4 are hex digits
+    for (int i = 2; i < 5; i++) {
+        if (!isxdigit(line[i])) {
+            return true;
+        }
+    }
+    
+    return false;
 }
 
 /* 
