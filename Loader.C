@@ -10,7 +10,6 @@
 #define ADDREND 4
 #define DATABEGIN 7
 #define COMMENT 28
-
 /* 
  * Loader
  * opens up the file named in argv[0] and loads the
@@ -37,7 +36,7 @@ Loader::Loader(int argc, char * argv[])
    {
       if (hasErrors(line))
       {
-         std::cout << "Error on line " << std::dec << lineNumber 
+         std::cout << "Error on line " << std::dec << lineNumber
               << ": " << line << std::endl;
          return;
       }
@@ -82,7 +81,7 @@ bool Loader::hasAddress(std::string line)
 bool Loader::hasData(std::string line)
 {
     // If char at DATABEGIN (7) is not a space, then data exists
-    return(!line.empty() && line[DATABEGIN] == ' ');
+    return(!line.empty() && line[DATABEGIN] != ' ');
 }
 
 
@@ -114,37 +113,49 @@ bool Loader::hasComment(std::string line)
  */
 void Loader::loadLine(std::string line)
 {
-   //Hints:
-   //Use the convert method to convert the characters
-   //that represent the address into a number.
-   //Also, use the convert method for each byte of data.
-   // Extract the address from the line
-    int32_t addr = convert(line, ADDRBEGIN, ADDREND - ADDRBEGIN);
+    int32_t addr;
+    //for first load
+    if (!loaded && hasAddress(line)) {
+        addr = convert(line, ADDRBEGIN, ADDREND - ADDRBEGIN);
+    } else {
+        // use last adress if not
+        addr = lastAddress;
+    }
+    
     bool imem_error;
-
-    // Starting position for data in the line
     int32_t dataStart = DATABEGIN;
-
-    // Load data byte by byte into memory
-    while (dataStart < line.size() && line[dataStart] != ' ' && dataStart < COMMENT) {
-        // Convert two hex characters to a byte
+    
+    while (dataStart < line.size() && dataStart < COMMENT)
+    {
+        // Skip spaces in data section
+        while (dataStart < COMMENT && isspace(line[dataStart]))
+        {
+            dataStart++;
+        }
+        if (dataStart >= COMMENT)
+            break;
+        
+        // get byte to load to memory
         uint8_t dataByte = static_cast<uint8_t>(convert(line, dataStart, 2));
-
-        // Get the singleton instance and store the byte into memory at the current address
         Memory::getInstance()->putByte(dataByte, addr, imem_error);
-
-        // If there's a memory error, exit the function
         if (imem_error) {
+            
             return;
         }
-
-        // Move to the next byte position in the line
+        
+        
         dataStart += 2;
-
-        // Increment address for the next byte
         addr++;
     }
+    
+    // Update last adress for use
+    // set loaded to true so we can use last adress for next load
+    lastAddress = addr;
+    loaded = true;
 }
+
+
+
 
 
 /*
@@ -162,9 +173,27 @@ void Loader::loadLine(std::string line)
  */
 int32_t Loader::convert(std::string line, int32_t start, int32_t len)
 {
-   return strtol(line.substr(start, len).c_str(), nullptr, 16);
-}
+    // Ensure the string does not go out of bounds
+    if (start + len > line.size()) {
+        
+        return -1;
+    }
 
+    std::string hexStr = line.substr(start, len);
+
+    
+
+    char* endPtr;
+    int32_t value = strtol(hexStr.c_str(), &endPtr, 16);
+
+    if (*endPtr != '\0') {
+        
+        return -1; // Handle conversion error
+    }
+
+    return value;
+
+}
 /*
  * hasErrors
  * Returns true if the line file has errors in it and false
@@ -177,38 +206,69 @@ int32_t Loader::convert(std::string line, int32_t start, int32_t len)
 bool Loader::hasErrors(std::string line)
 {
     int32_t numDBytes;
+    int32_t addr = convert(line, ADDRBEGIN, ADDREND - ADDRBEGIN + 1);
 
     // 1) Check if the line has a comment correctly formatted
     if (!hasComment(line))
+    {
+
         return true;
+    }
 
     // 2) If no address is present, ensure the line is only spaces before the comment
-    if (!hasAddress(line))
-        return isSpaces(line, 0, COMMENT);
+    bool space2 = (isSpaces(line, 0, COMMENT));
+    if (!hasAddress(line) && space2)
+    {
 
+        return space2;
+    }
+    bool check = errorAddr(line) && space2;
     // 3) Check if the address is valid
-    if (errorAddr(line))
+     if (check)
+    {
+
         return true;
+    }
 
     // 4) If no data is present, ensure only spaces remain before the comment
-    if (!hasData(line))
-        return isSpaces(line, ADDREND + 1, COMMENT);
+    bool space = !(isSpaces(line, ADDREND + 2, COMMENT - 1));
+
+    if (!hasData(line) && space)
+    {
+        return true;
+    }
 
     // 5) Validate data formatting
     if (errorData(line, numDBytes))
+    {
+
         return true;
+    }
 
     // 6) Ensure addresses increase (lastAddress must always increase)
-    int32_t addr = convert(line, ADDRBEGIN, ADDREND - ADDRBEGIN + 1);
-    if (addr <= lastAddress)
+
+    if (addr < lastAddress && hasData(line))
+    {
+        
+        if ((addr == lastAddress) && hasData(line))
+        {
+            return false;
+             std::cout << addr << std::endl;
+        }
+        std::cout << "address check failed" << std::endl;
         return true;
+    }
 
     // 7) Ensure memory doesn't exceed MEMSIZE
     if ((addr + numDBytes) > MEMSIZE)
+    {
+        std::cout << "Memory check failed." << std::endl;
         return true;
+    }
+    
 
-    lastAddress = addr;  // Update last processed address
-    return false;  // No errors detected
+    lastAddress = addr; // Update last processed address
+    return false;       // No errors detected
 }
 
 /*
@@ -228,25 +288,34 @@ bool Loader::hasErrors(std::string line)
  * @param line - input line from the .yo file
  * @return numDBytes is set to the number of data bytes on the line
  */
-bool Loader::errorData(std::string line, int32_t & numDBytes)
-{
-    numDBytes = 0; // Initialize the number of data bytes
+bool Loader::errorData(std::string line, int32_t & numDBytes) {
+   numDBytes = 0;  // Initialize the number of data bytes
+    int i = 7; // DATABEGIN is 7
 
-    // Iterate through the data section, ensuring valid hex pairs
-    int i = DATABEGIN;
-    while (i + 1 < line.length() && line[i] != ' ' && i < COMMENT)
-    {
-        // Ensure both characters in the pair are valid hex digits
-        if (!isxdigit(line[i]) || !isxdigit(line[i + 1]))
-            return true; // Invalid hex character found
-
-        numDBytes++;  // Increment count of valid data bytes
-        i += 2;       // Move to the next pair
+    // Use hasData to check if the line actually contains data
+    if (!hasData(line)) {
+        return false; // No data section, hence no error
     }
 
-    // Ensure the remaining characters up to COMMENT are spaces
-    return !isSpaces(line, i, COMMENT);
+    // Iterate through the line to find valid hex pairs
+    while (i + 1 < line.length() && line[i] != '|') { 
+        // Check if the characters are valid hex digits
+        if (isxdigit(line[i]) && isxdigit(line[i + 1])) {
+            numDBytes++;  // Increment count of valid data bytes
+            i += 2;  // Move to the next potential hex pair
+        } else if (line[i] == ' ' || line[i] == '\t') {
+            // Continue past spaces and tabs
+            i++;
+        } else {
+            return true;  // Invalid character found, error detected
+        }
+    }
+
+
+    
+    return false;
 }
+
 
 /*
  * errorAddr
@@ -265,12 +334,12 @@ bool Loader::errorAddr(std::string line)
         return true;
     }
     
-    // Check for the address format: 0xHHH:
+    // Check for the address format
     if (line[0] != '0' || line[1] != 'x' || line[5] != ':') {
         return true;
     }
     
-    // Validate that characters 2 to 4 are hex digits
+    // Validate for hex
     for (int i = 2; i < 5; i++) {
         if (!isxdigit(line[i])) {
             return true;
@@ -293,13 +362,16 @@ bool Loader::errorAddr(std::string line)
  *         false, otherwise
  */
 bool Loader::isSpaces(std::string line, int32_t start, int32_t end) {
-    for (int32_t i = start; i <= end && i < line.size(); i++) {
-        if (line[i] != ' ') {
-            return false;
+    
+        for (int32_t i = start; i <= end && i < line.size(); i++) {
+            
+            if (line[i] != ' ' && line[i] != '\t') {
+                return false;
+            }
         }
+        return true;
     }
-    return true;
-}
+
 /*
  * isLoaded
  * getter for the private loaded data member
