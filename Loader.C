@@ -61,7 +61,7 @@ Loader::Loader(int argc, char * argv[])
 bool Loader::hasAddress(std::string line)
 {
     // A valid address line starts with '0'
-    return (!line.empty() && line[0] == '0');
+    return ((!line.empty() && line[0] == '0'));
 }
 
 
@@ -115,12 +115,8 @@ void Loader::loadLine(std::string line)
 {
     int32_t addr;
     //for first load
-    if (!loaded && hasAddress(line)) {
-        addr = convert(line, ADDRBEGIN, ADDREND - ADDRBEGIN);
-    } else {
-        // use last adress if not
-        addr = lastAddress;
-    }
+    addr = convert(line, ADDRBEGIN, ADDREND-1);
+
     
     bool imem_error;
     int32_t dataStart = DATABEGIN;
@@ -136,7 +132,7 @@ void Loader::loadLine(std::string line)
             break;
         
         // get byte to load to memory
-        uint8_t dataByte = static_cast<uint8_t>(convert(line, dataStart, 2));
+        uint8_t dataByte = convert(line, dataStart, 2);
         Memory::getInstance()->putByte(dataByte, addr, imem_error);
         if (imem_error) {
             
@@ -151,7 +147,7 @@ void Loader::loadLine(std::string line)
     // Update last adress for use
     // set loaded to true so we can use last adress for next load
     lastAddress = addr;
-    loaded = true;
+    
 }
 
 
@@ -184,15 +180,13 @@ int32_t Loader::convert(std::string line, int32_t start, int32_t len)
     
 
     char* endPtr;
+    
     int32_t value = strtol(hexStr.c_str(), &endPtr, 16);
-
     if (*endPtr != '\0') {
-        
-        return -1; // Handle conversion error
-    }
-
-    return value;
-
+    
+    return -1;
+}
+return value;
 }
 /*
  * hasErrors
@@ -203,73 +197,79 @@ int32_t Loader::convert(std::string line, int32_t start, int32_t len)
  * @return true, if the line has errors 
  *         false, otherwise
  */
-bool Loader::hasErrors(std::string line)
-{
-    int32_t numDBytes;
-    int32_t addr = convert(line, ADDRBEGIN, ADDREND - ADDRBEGIN + 1);
+bool Loader::hasErrors(std::string line) {
+    int32_t numDBytes = 0; // Initialize numDBytes
+    int32_t addr = convert(line, ADDRBEGIN, 3); // Convert address
 
-    // 1) Check if the line has a comment correctly formatted
-    if (!hasComment(line))
-    {
-
-        return true;
-    }
-
-    // 2) If no address is present, ensure the line is only spaces before the comment
-    bool space2 = (isSpaces(line, 0, COMMENT));
-    if (!hasAddress(line) && space2)
-    {
-
-        return space2;
-    }
-    bool check = errorAddr(line) && space2;
-    // 3) Check if the address is valid
-     if (check)
-    {
-
-        return true;
-    }
-
-    // 4) If no data is present, ensure only spaces remain before the comment
-    bool space = !(isSpaces(line, ADDREND + 2, COMMENT - 1));
-
-    if (!hasData(line) && space)
-    {
-        return true;
-    }
-
-    // 5) Validate data formatting
-    if (errorData(line, numDBytes))
-    {
-
-        return true;
-    }
-
-    // 6) Ensure addresses increase (lastAddress must always increase)
-
-    if (addr < lastAddress && hasData(line))
-    {
-        
-        if ((addr == lastAddress) && hasData(line))
-        {
-            return false;
-             std::cout << addr << std::endl;
-        }
-        std::cout << "address check failed" << std::endl;
-        return true;
-    }
-
-    // 7) Ensure memory doesn't exceed MEMSIZE
-    if ((addr + numDBytes) > MEMSIZE)
-    {
-        std::cout << "Memory check failed." << std::endl;
-        return true;
-    }
     
+    
+    // 1) Check if the line has a properly formatted comment
+    if (!hasComment(line)) {
+       
+        return true;
+    }
 
-    lastAddress = addr; // Update last processed address
-    return false;       // No errors detected
+    // 2) Check for a completely blank line (only spaces before the comment)
+    if (isSpaces(line, 0, COMMENT)) {
+        
+        return true;
+    }
+
+    // 3) Check if the address is valid, but don't return prematurely
+    if (hasAddress(line)) {
+        if (errorAddr(line)) {
+            
+            return true;
+        }
+    }
+    //odd case
+    if(line[1]=='x')
+    {
+        if(line[0]!='0')
+        {
+            return true;
+        }
+    }
+
+    // 4) Check formatting
+    if (!hasData(line) && !isSpaces(line, ADDREND + 2, COMMENT - 1)) {
+        
+        return true;
+    }
+
+    // 5) check data, get numbytes
+    if (errorData(line, numDBytes)) {
+        
+        return true;
+    }
+
+    // Debug: Confirm numDBytes after calling errorData
+   
+
+    // 6) Icrease adress
+   if (lastAddress >= 0 && addr < (lastAddress + 8) && hasData(line)) {
+    if (addr == lastAddress) {
+        // Allow the case where addr == lastAddress for the first valid load
+    } else {
+        
+        return true;
+    }
 }
+
+
+
+
+    // 7) Ensure memory bounds are not exceeded
+    if ((addr + numDBytes) > MEMSIZE || addr >= MEMSIZE) {
+        
+        return true;
+    }
+
+    // Update lastAddress and return no errors
+    lastAddress = addr;
+    return false;
+}
+
 
 /*
  * errorData
@@ -298,21 +298,23 @@ bool Loader::errorData(std::string line, int32_t & numDBytes) {
     }
 
     // Iterate through the line to find valid hex pairs
-    while (i + 1 < line.length() && line[i] != '|') { 
+    while (i <COMMENT) { 
         // Check if the characters are valid hex digits
-        if (isxdigit(line[i]) && isxdigit(line[i + 1])) {
+        if (i + 1 < COMMENT && isxdigit(line[i]) && isxdigit(line[i + 1])) {
             numDBytes++;  // Increment count of valid data bytes
             i += 2;  // Move to the next potential hex pair
         } else if (line[i] == ' ' || line[i] == '\t') {
             // Continue past spaces and tabs
-            i++;
+            for (int j = i; j < COMMENT && line[j] != '|'; ++j) {
+            if (!isspace(line[j])) {
+                return true;  // Found an invalid non-space character
+            }
+        }
+        break;
         } else {
             return true;  // Invalid character found, error detected
         }
     }
-
-
-    
     return false;
 }
 
@@ -335,17 +337,18 @@ bool Loader::errorAddr(std::string line)
     }
     
     // Check for the address format
-    if (line[0] != '0' || line[1] != 'x' || line[5] != ':') {
+    if (!(line[0] == '0' && line[1] == 'x' && line[5] == ':' && line[6]==' ')) {
         return true;
     }
-    
+   
     // Validate for hex
     for (int i = 2; i < 5; i++) {
         if (!isxdigit(line[i])) {
             return true;
         }
     }
-    
+     
+
     return false;
 }
 
