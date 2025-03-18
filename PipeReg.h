@@ -1,4 +1,6 @@
-
+#include <string>
+#ifndef PIPEREG_H
+#define PIPEREG_H
 //these can be used as indices into an array of PipeReg
 #define FREG 0
 #define DREG 1
@@ -22,4 +24,4 @@ class PipeReg
    protected:
       void dumpField(std::string label, int width, uint64_t value, bool nl);
 };
-
+#endif

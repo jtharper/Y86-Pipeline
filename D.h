@@ -1,3 +1,6 @@
+#include "PipeRegField.h"
+#ifndef D_H
+#define D_H
 //class to hold the D pipeline registers
 class D : public PipeReg
 {
@@ -20,3 +23,4 @@ class D : public PipeReg
       PipeRegField * getvalP();
       void dump();
 };
+#endif

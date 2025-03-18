@@ -1,21 +1,16 @@
 CC = g++
 CFLAGS = -g -c -Wall -std=c++11 -O0
-OBJ = lab5.o Loader.o Memory.o Tools.o RegisterFile.o \
- ConditionCodes.o 
+OBJ = ConditionCodes.o Memory.o RegisterFile.o Tools.o Loader.o \
+yess.o PipeReg.o PipeRegField.o W.o F.o D.o M.o E.o FetchStage.o MemoryStage.o WritebackStage.o DecodeStage.o ExecuteStage.o Simulate.o
 
 .C.o:
 	$(CC) $(CFLAGS) $< -o $@
 
-lab5: $(OBJ)
+yess: $(OBJ)
+	$(CC) $(OBJ) -o yess
 
 clean:
-	rm $(OBJ) lab5
-
-run:
-	make clean
-	make lab5
-	./run.sh
+	rm -f $(OBJ) yess
 
 removeR:
 	sed -i -e 's/\r$$//' *
-

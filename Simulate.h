@@ -1,3 +1,5 @@
+#ifndef SIMULATE_H
+#define SIMULATE_H
 //Driver class for the yess simulator
 class Simulate
 {
@@ -11,3 +13,4 @@ class Simulate
       void doClockHigh();
       void dumpPipeRegs();
 };
+#endif

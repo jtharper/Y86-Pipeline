@@ -1,3 +1,5 @@
+#ifndef PIPEREGFIELD_H
+#define PIPEREGFIELD_H
 //class to represent a single
 //pipeline register
 class PipeRegField
@@ -14,6 +16,4 @@ class PipeRegField
       void stall();
       void bubble(int state = 0);
 };
- 
-
-  
+#endif

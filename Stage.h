@@ -1,3 +1,5 @@
+#ifndef STAGE_H
+#define STAGE_H
 //these #defines can be used as indices in an array of stages
 #define FSTAGE 0
 #define DSTAGE 1
@@ -15,5 +17,6 @@ class Stage
       virtual bool doClockLow(PipeReg ** pregs, Stage ** stages) = 0;
       virtual void doClockHigh(PipeReg ** pregs) = 0;
 };
+#endif
 
 
