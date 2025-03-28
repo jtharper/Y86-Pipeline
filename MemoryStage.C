@@ -5,20 +5,25 @@
 #include "Stage.h"
 #include "MemoryStage.h"
 #include "Instructions.h"
-bool MemoryStage::doClockLow(PipeReg ** pregs, Stage ** stages)
-{
-    
-    M* mreg = static_cast<M*>(pregs[MREG]);  
-    W* ereg = static_cast<W*>(pregs[EREG]);  
-    uint64_t stat = mreg->getstat()->getOutput();
-	uint64_t icode = mreg->geticode()->getOutput();
-	uint32_t dstM = mreg->getdstM()->getOutput();
-	uint64_t dstE = mreg->getdstE()->getOutput();
-	uint64_t valE = mreg -> getvalE()->getOutput();
-	
+bool MemoryStage::doClockLow(PipeReg ** pregs, Stage ** stages) {
+    // Get the M (MemoryStage) and W (WritebackStage) pipeline registers
+    M* mreg = static_cast<M*>(pregs[MREG]);
+    W* wreg = static_cast<W*>(pregs[WREG]);  // Correctly access W register (WREG)
 
-    return false;
+    // Extract values from M register
+    uint64_t stat = mreg->getstat()->getOutput();
+    uint64_t icode = mreg->geticode()->getOutput();
+    uint64_t dstM = mreg->getdstM()->getOutput();
+    uint64_t dstE = mreg->getdstE()->getOutput();
+    uint64_t valE = mreg->getvalE()->getOutput();
+    uint64_t valM = 0; // Assuming memory read/write is not implemented yet
+
+    // Call setWinput to update W register
+    setWinput(wreg, stat, icode, valE, dstE, dstM, valM);
+
+    return false; // Continue execution until WritebackStage halts
 }
+
 void MemoryStage::doClockHigh(PipeReg ** pregs)
 {
   W* wreg = static_cast<W*>(pregs[WREG]);  

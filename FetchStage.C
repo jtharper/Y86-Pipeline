@@ -40,9 +40,9 @@ bool FetchStage::doClockLow(PipeReg **pregs, Stage **stages)
         stat = 1; // Assuming address error
         return false;
     }
-
-    icode = Tools::getBits(instruction,4,7); // Extract icode
-    ifun = Tools::getBits(instruction,0,3);  // Extract ifun
+  ifun = Tools::getBits(instruction,0,3);  // Extract ifun
+  icode = Tools::getBits(instruction,4,7); // Extract icode
+    
 
     
 
