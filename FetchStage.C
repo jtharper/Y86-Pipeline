@@ -13,6 +13,7 @@
 #include "Debug.h"
 #include "Instructions.h"
 #include "Memory.h"
+#include "Tools.h"
 
 /*
  * doClockLow:
@@ -40,9 +41,12 @@ bool FetchStage::doClockLow(PipeReg **pregs, Stage **stages)
         return false;
     }
 
-    icode = (instruction >> 4) & 0xF; // Extract icode
-    ifun = instruction & 0xF;         // Extract ifun
+    icode = Tools::getBits(instruction,4,7); // Extract icode
+    ifun = Tools::getBits(instruction,0,3);  // Extract ifun
 
+    
+
+    
     // Fetch rA and rB if needed
     if (needRegIds(icode)) {
         uint8_t regByte = Memory::getInstance()->getByte(f_pc + 1, mem_error);
