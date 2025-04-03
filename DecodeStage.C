@@ -5,6 +5,7 @@
 #include "DecodeStage.h"
 #include "Instructions.h"
 #include "RegisterFile.h"
+#include <iostream>
 
 bool DecodeStage::doClockLow(PipeReg** pregs, Stage** stages) {
     // D and E registers
@@ -28,6 +29,7 @@ bool DecodeStage::doClockLow(PipeReg** pregs, Stage** stages) {
     uint64_t d_srcB = set_d_srcB(icode, D_rB);
     d_dstE = set_d_dstE(icode, D_rB);
     d_dstM = set_d_dstM(icode, D_rA);
+    
 
     bool blah = false;
     uint64_t d_rvalA = RegisterFile::getInstance()->readRegister(d_srcA,blah);
@@ -35,7 +37,7 @@ bool DecodeStage::doClockLow(PipeReg** pregs, Stage** stages) {
 
     uint64_t valA = set_d_valA(d_rvalA);
     uint64_t valB = set_d_valB(d_rvalB); 
-
+   
     setEInput(ereg, stat, icode, ifun, valC, d_dstE, d_dstM, d_srcA, d_srcB);
 
     return false;

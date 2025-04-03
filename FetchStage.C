@@ -14,6 +14,8 @@
 #include "Instructions.h"
 #include "Memory.h"
 #include "Tools.h"
+#include <ostream>
+#include <iostream>
 
 /*
  * doClockLow:
@@ -34,6 +36,7 @@ bool FetchStage::doClockLow(PipeReg **pregs, Stage **stages)
 
     // Fetch the instruction byte
     uint64_t f_pc = selectPC((F *)pregs[FREG], (M *)pregs[MREG], (W *)pregs[WREG]);
+
     bool mem_error = false;
     uint8_t instruction = Memory::getInstance()->getByte(f_pc, mem_error);
     if (mem_error) {
@@ -51,16 +54,13 @@ bool FetchStage::doClockLow(PipeReg **pregs, Stage **stages)
     if (needRegIds(icode)) {
         
         getRegIds(&rA,&rB,f_pc);
-        if (mem_error) {
-            stat = 1;
-            return false;
-        }
-    
+       
     }
 
     if(need_valC(icode))
     {
         valC = buildValC(f_pc,needRegIds(icode));
+       
     }
 
     // Skip fetching valC; use default value of 0
@@ -187,7 +187,7 @@ uint64_t FetchStage::PCincrement(uint64_t f_pc, bool regIdResult, bool valCr)
 void FetchStage::getRegIds(uint64_t * rA, uint64_t * rB, uint64_t f_pc){
 
     bool figures = false;
-    uint64_t byte = Tools::getByte(f_pc+1,figures);
+    uint64_t byte = Memory::getInstance()->getByte(f_pc + 1, figures);
     uint64_t RB = Tools::getBits(byte,0,3);
     uint64_t RA = Tools::getBits(byte,4,7);
     *rB = RB;
@@ -195,25 +195,26 @@ void FetchStage::getRegIds(uint64_t * rA, uint64_t * rB, uint64_t f_pc){
 
 }
 
-uint64_t FetchStage::buildValC(int_fast64_t f_pc, bool needRegID)
+uint64_t FetchStage::buildValC(uint64_t f_pc, bool needRegID)
 {
-    uint64_t valC = 0;
-    bool error;
+uint8_t valC[8]; // Ensure the array is correctly initialized
+bool error = false;
+f_pc++; 
 
+if (needRegID) {
     f_pc++;
-    if(needRegID)
-    {
-        f_pc++;
-    }
+}
 
-    for(int i =0; i < 8; i++)
-    {
-        uint8_t byte = Tools::getByte(f_pc+i, error);
-        if(error)
-        {
-            return 0;
-        }
-        valC |= ((int64_t)byte << (i*8));
-    }
-    return valC;
+// Fetch 8 bytes into valC
+for (int i = 0; i < 8; i++) {
+   valC[i] = Memory::getInstance()->getByte(f_pc + i, error);
+    if (error) return 0; // Handle memory access errors properly
+}
+
+// Convert the byte array into a 64-bit integer using buildLong
+uint64_t result = Tools::buildLong(valC);
+
+
+return result;
+
 }

@@ -4,6 +4,8 @@
 #include "WritebackStage.h"
 #include "Instructions.h"
 #include "RegisterFile.h"
+#include <ostream>
+#include <iostream>
 
 bool WritebackStage::doClockLow(PipeReg ** pregs, Stage ** stages)
 {
@@ -26,6 +28,8 @@ void WritebackStage::doClockHigh(PipeReg ** pregs)
    bool haha = false;
    uint64_t W_valE = wreg->getvalE()->getOutput();
    uint64_t W_dstE = wreg->getdstE()->getOutput();
+   
+
    RegisterFile::getInstance()->writeRegister(W_valE,W_dstE, haha);
 
 }
