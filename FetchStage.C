@@ -49,20 +49,25 @@ bool FetchStage::doClockLow(PipeReg **pregs, Stage **stages)
     
     // Fetch rA and rB if needed
     if (needRegIds(icode)) {
-        uint8_t regByte = Memory::getInstance()->getByte(f_pc + 1, mem_error);
+        
+        getRegIds(&rA,&rB,f_pc);
         if (mem_error) {
             stat = 1;
             return false;
         }
-        rA = (regByte >> 4) & 0xF;
-        rB = regByte & 0xF;
+    
+    }
+
+    if(need_valC(icode))
+    {
+        valC = buildValC(f_pc,needRegIds(icode));
     }
 
     // Skip fetching valC; use default value of 0
-    valC = 0;
+    
 
     // Calculate valP using PCincrement
-    valP = PCincrement(f_pc, needRegIds(icode), false); // Set `needValC` to `false`
+    valP = PCincrement(f_pc, needRegIds(icode), need_valC(icode)); // Set `needValC` to `false`
 
     // Predict next PC
     uint64_t f_predPC = predictPC(icode, valP, valC);
@@ -177,4 +182,38 @@ uint64_t FetchStage::PCincrement(uint64_t f_pc, bool regIdResult, bool valCr)
    }
    f_pc = f_pc+1;
    return f_pc;
+}
+
+void FetchStage::getRegIds(uint64_t * rA, uint64_t * rB, uint64_t f_pc){
+
+    bool figures = false;
+    uint64_t byte = Tools::getByte(f_pc+1,figures);
+    uint64_t RB = Tools::getBits(byte,0,3);
+    uint64_t RA = Tools::getBits(byte,4,7);
+    *rB = RB;
+    *rA= RA;
+
+}
+
+uint64_t FetchStage::buildValC(int_fast64_t f_pc, bool needRegID)
+{
+    uint64_t valC = 0;
+    bool error;
+
+    f_pc++;
+    if(needRegID)
+    {
+        f_pc++;
+    }
+
+    for(int i =0; i < 8; i++)
+    {
+        uint8_t byte = Tools::getByte(f_pc+i, error);
+        if(error)
+        {
+            return 0;
+        }
+        valC |= ((int64_t)byte << (i*8));
+    }
+    return valC;
 }

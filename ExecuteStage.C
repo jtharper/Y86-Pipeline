@@ -18,9 +18,9 @@ bool ExecuteStage::doClockLow(PipeReg ** pregs, Stage ** stages)
     uint64_t dstE = ereg->getdstE()->getOutput(); 
     uint64_t dstM = ereg->getdstM()->getOutput();
     uint64_t e_cnd = 0;
-
-    uint64_t valE = 0;
-    setMInput(mreg, stat, icode, valA, valE, dstE, dstM, e_cnd);
+    uint64_t E_valC = ereg->getvalC()->getOutput();
+    uint64_t e_valE = E_valC;
+    setMInput(mreg, stat, icode, valA, e_valE, dstE, dstM, e_cnd);
     return false;
 } 
 void ExecuteStage::doClockHigh(PipeReg ** pregs)
