@@ -2,6 +2,8 @@
 #include "D.h"
 #include "E.h"
 #include "F.h"
+#include "M.h"
+#include "W.h"
 #include "DecodeStage.h"
 #include "Instructions.h"
 #include "RegisterFile.h"
@@ -108,5 +110,57 @@ uint64_t DecodeStage::set_d_dstM(uint64_t D_icode, uint64_t D_rA) {
 }
 
 // Just pass through the register values for now
-uint64_t DecodeStage::set_d_valA(uint64_t d_rvalA) { return d_rvalA; }
-uint64_t DecodeStage::set_d_valB(uint64_t d_rvalB) { return d_rvalB; }
+uint64_t DecodeStage::set_d_valA(uint64_t d_rvalA,E* ereg, 
+    uint64_t d_srcA,M* mreg, W* wreg)
+     { 
+        uint64_t m_valE = mreg->getvalE()->getOutput();
+        uint64_t w_dstE = wreg->getdstE()->getOutput();
+        uint64_t e_dstE = ereg->getdstE()->getOutput();
+        uint64_t e_valE = ereg->getvalC()->getOutput();
+        uint64_t m_dstE = mreg->getdstE()->getOutput();
+        uint64_t w_valE = wreg->getvalE()->getOutput();
+
+    if (d_srcA == e_dstE)
+        {
+            return e_valE;
+        }
+    if (d_srcA == m_dstE)
+        {
+            return m_valE;
+        }
+    if (d_srcA == w_dstE)
+        {
+            return w_valE;
+        }
+    else
+        {
+            return d_srcA;
+        }
+ }
+
+uint64_t DecodeStage::set_d_valB(uint64_t d_rvalB, uint64_t d_srcB, E* ereg, M* mreg, W* wreg){
+        
+        uint64_t m_valE = mreg->getvalE()->getOutput();
+        uint64_t w_dstE = wreg->getdstE()->getOutput();
+        uint64_t e_dstE = ereg->getdstE()->getOutput();
+        uint64_t e_valE = ereg->getvalC()->getOutput();
+        uint64_t m_dstE = mreg->getdstE()->getOutput();
+        uint64_t w_valE = wreg->getvalE()->getOutput();
+
+    if (d_srcB == e_dstE)
+        {
+            return e_valE;
+        }
+    if (d_srcB == m_dstE)
+        {
+            return m_valE;
+        }
+    if (d_srcB == w_dstE)
+        {
+            return w_valE;
+        }
+    else
+        {
+            return d_rvalB;
+        }
+    }
