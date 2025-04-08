@@ -2,6 +2,10 @@
 #include "M.h"
 #include "E.h"
 #include "ExecuteStage.h"
+#include "Instructions.h"
+#include "RegisterFile.h"
+#include "ConditionCodes.h"
+#include "Tools.h"
 #include <iostream>
 
 // Execute actions when the clock is low
@@ -56,3 +60,106 @@ void ExecuteStage::setMInput(M* mreg, uint64_t stat, uint64_t icode, uint64_t va
     mreg->getdstM()->setInput(dstM);
 }
 
+uint64_t ExecuteStage::aluA(uint64_t e_icode,uint64_t e_valA,uint64_t e_valC)
+{
+    if (e_icode == IRRMOVQ || e_icode == IOPQ)
+    {
+        return e_valA;
+    }
+    else if (e_icode == IIRMOVQ || e_icode == IRMMOVQ || e_icode == IMRMOVQ)
+    {
+        return e_valC;
+    }
+    else if (e_icode == ICALL || e_icode == IPUSHQ)
+    {
+        return -8;
+    }
+    else if (e_icode == IRET || e_icode == IPOPQ)
+    {
+        return 8;
+    }
+    else
+    {
+        return 0;
+    }
+}
+uint64_t ExecuteStage::aluB(uint64_t e_icode,uint64_t e_valB)
+{
+    if (e_icode == IRMMOVQ || e_icode == IMRMOVQ || e_icode == IOPQ || e_icode == ICALL || e_icode == IPUSHQ || e_icode == IRET || e_icode == IPOPQ)
+    {
+        return e_valB;
+    }
+    else if (e_icode == IRRMOVQ || e_icode == IIRMOVQ)
+    {
+        return 0;
+    }
+    else
+    {
+        return 1;
+    }
+}
+uint64_t ExecuteStage::alufun(uint64_t e_icode,uint64_t e_ifun)
+{
+    if(e_icode == IOPQ)
+    {
+        return e_ifun;
+    }
+    else
+    {
+        return ADDQ;
+    }
+}
+bool ExecuteStage::set_cc(uint64_t e_icode)
+{
+    return (e_icode == IOPQ);
+}
+uint64_t ExecuteStage::e_dstE(uint64_t e_icode,uint64_t e_cnd)
+{
+    if(e_icode == IRRMOVQ && !e_cnd)
+    {
+        return RNONE;
+    }
+}
+void ExecuteStage::CC(bool _ZF, bool _SF, bool _OF)
+{
+    bool error = false;
+    ConditionCodes::getInstance()->setConditionCode(_ZF,ZF, error);
+    ConditionCodes::getInstance()->setConditionCode(_SF,SF, error);
+    ConditionCodes::getInstance()->setConditionCode(_OF,OF, error);
+}
+uint64_t ExecuteStage::alu(uint64_t aluA,uint64_t aluB,uint64_t alufun, bool setCC)
+{
+    bool toOverflow;
+    uint64_t returnValue;
+    switch (alufun)
+    {
+        case ADDQ:
+            toOverflow = Tools::addOverflow(aluA, aluB);
+            returnValue = aluA + aluB;
+            break;
+        
+        case XORQ:
+            returnValue = aluA ^ aluB;
+            break;
+        
+        case SUBQ:
+            toOverflow = Tools::subOverflow(aluA, aluB);
+            returnValue = aluB - aluA;
+            break;
+        
+        case ANDQ:
+            returnValue = aluA & aluB;
+            break;
+
+        default:
+            break;
+    } 
+    if(setCC)  
+    {
+        bool signflag = Tools::sign(returnValue);
+        bool zeroflag = (returnValue == 0);
+        CC(zeroflag, signflag, toOverflow);
+    }
+return returnValue;
+        
+}
