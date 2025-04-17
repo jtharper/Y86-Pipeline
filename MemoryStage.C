@@ -18,8 +18,11 @@ bool MemoryStage::doClockLow(PipeReg ** pregs, Stage ** stages) {
     uint64_t dstM = mreg->getdstM()->getOutput();
     uint64_t dstE = mreg->getdstE()->getOutput();
     uint64_t valE = mreg->getvalE()->getOutput();
-    uint64_t valM = 0; // No actual memory access yet, default value
+    uint64_t valM = 0;
 
+    if (icode == INOP){
+        valE = 0;
+    }
     // Passes values forward to the Writeback stage
     setWinput(wreg, stat, icode, valE, dstE, dstM, valM);
 

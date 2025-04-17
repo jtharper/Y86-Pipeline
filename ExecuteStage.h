@@ -15,9 +15,9 @@ class ExecuteStage: public Stage
       uint64_t aluB(uint64_t e_icode,uint64_t e_valB);
       uint64_t alufun(uint64_t e_icode,uint64_t e_ifun);
       bool set_cc(uint64_t e_icode);
-      uint64_t e_dstE(uint64_t e_icode,uint64_t e_cnd);
       void CC(bool _ZF, bool _SF, bool _OF);
       uint64_t alu(uint64_t aluA,uint64_t aluB,uint64_t alufun, bool setCC);
+      uint64_t e_valE, e_dstE;
       
 
    public:
@@ -25,6 +25,8 @@ class ExecuteStage: public Stage
       void doClockHigh(PipeReg ** pregs);
 
       void setMInput(M *mreg, uint64_t stat, uint64_t icode, uint64_t valA, uint64_t valE, uint64_t dstE, uint64_t dstM, uint64_t e_cnd);
+      uint64_t gete_valE() const { return e_valE;}
+      uint64_t gete_dstE() const { return e_dstE;}
 
      
 };

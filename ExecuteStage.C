@@ -23,14 +23,24 @@ bool ExecuteStage::doClockLow(PipeReg ** pregs, Stage ** stages)
     uint64_t valB = ereg->getvalB()->getOutput();
    
     uint64_t dstE = ereg->getdstE()->getOutput(); 
+
     uint64_t dstM = ereg->getdstM()->getOutput();
+    
+    uint64_t ifun = ereg->getifun()->getOutput();
 
     uint64_t e_cnd = 0;  // default condition flag
     uint64_t E_valC = ereg->getvalC()->getOutput();
-    uint64_t e_valE = E_valC;  // For now were just using valC as valE
+    uint64_t A = aluA(icode, valA, E_valC);
+    uint64_t B = aluB(icode, valB);
+    uint64_t fn = alufun(icode, ifun);
+    bool docc = set_cc(icode);
+    uint64_t result = alu(A,B,fn,docc);
+
+    e_valE = result;
+    e_dstE = dstE;
    
     // Pass the computed values to Memory stage (M register)
-    setMInput(mreg, stat, icode, valA, e_valE, dstE, dstM, e_cnd);
+    setMInput(mreg, stat, icode, valA, e_valE, e_dstE, dstM, e_cnd);
 
     return false; 
 }
@@ -59,7 +69,7 @@ void ExecuteStage::setMInput(M* mreg, uint64_t stat, uint64_t icode, uint64_t va
     mreg->getdstE()->setInput(dstE);
     mreg->getdstM()->setInput(dstM);
 }
-
+//Pass valA or valC depending on instruction
 uint64_t ExecuteStage::aluA(uint64_t e_icode,uint64_t e_valA,uint64_t e_valC)
 {
     if (e_icode == IRRMOVQ || e_icode == IOPQ)
@@ -82,7 +92,9 @@ uint64_t ExecuteStage::aluA(uint64_t e_icode,uint64_t e_valA,uint64_t e_valC)
     {
         return 0;
     }
+
 }
+//Return valB or zero depending on instruction
 uint64_t ExecuteStage::aluB(uint64_t e_icode,uint64_t e_valB)
 {
     if (e_icode == IRMMOVQ || e_icode == IMRMOVQ || e_icode == IOPQ || e_icode == ICALL || e_icode == IPUSHQ || e_icode == IRET || e_icode == IPOPQ)
@@ -95,9 +107,10 @@ uint64_t ExecuteStage::aluB(uint64_t e_icode,uint64_t e_valB)
     }
     else
     {
-        return 1;
+        return 0;
     }
 }
+//Returns correct fun based off of icode
 uint64_t ExecuteStage::alufun(uint64_t e_icode,uint64_t e_ifun)
 {
     if(e_icode == IOPQ)
@@ -109,17 +122,13 @@ uint64_t ExecuteStage::alufun(uint64_t e_icode,uint64_t e_ifun)
         return ADDQ;
     }
 }
+//Returns true if condition codes need to be set
 bool ExecuteStage::set_cc(uint64_t e_icode)
 {
     return (e_icode == IOPQ);
 }
-uint64_t ExecuteStage::e_dstE(uint64_t e_icode,uint64_t e_cnd)
-{
-    if(e_icode == IRRMOVQ && !e_cnd)
-    {
-        return RNONE;
-    }
-}
+
+//Takes flags from alu and sets condition codes if need be
 void ExecuteStage::CC(bool _ZF, bool _SF, bool _OF)
 {
     bool error = false;
@@ -127,6 +136,7 @@ void ExecuteStage::CC(bool _ZF, bool _SF, bool _OF)
     ConditionCodes::getInstance()->setConditionCode(_SF,SF, error);
     ConditionCodes::getInstance()->setConditionCode(_OF,OF, error);
 }
+//Determines opertation to perform. Returns a value and sets condition codes
 uint64_t ExecuteStage::alu(uint64_t aluA,uint64_t aluB,uint64_t alufun, bool setCC)
 {
     bool toOverflow;

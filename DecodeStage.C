@@ -14,6 +14,8 @@ bool DecodeStage::doClockLow(PipeReg** pregs, Stage** stages) {
     // Get the D and E stage registers
     D* dreg = static_cast<D*>(pregs[DREG]);
     E* ereg = static_cast<E*>(pregs[EREG]);
+    M* mreg = static_cast<M*>(pregs[MREG]);
+    W* wreg = static_cast<W*>(pregs[WREG]);
 
     // Pull instruction data from the D register
     uint64_t stat = dreg->getstat()->getOutput();
@@ -35,10 +37,13 @@ bool DecodeStage::doClockLow(PipeReg** pregs, Stage** stages) {
     // Read values from the register file
     uint64_t d_rvalA = RegisterFile::getInstance()->readRegister(d_srcA, unused);
     uint64_t d_rvalB = RegisterFile::getInstance()->readRegister(d_srcB, unused);
+    uint64_t fwdA = set_d_valA(d_rvalA, ereg, d_srcA, mreg, wreg);
+    uint64_t fwdB = set_d_valB(d_rvalB, d_srcB, ereg, mreg, wreg);
 
     // Pass the register values to the next stage (E stage)
     setEInput(ereg, stat, icode, ifun, valC, d_dstE, d_dstM, d_srcA, d_srcB);
-
+    ereg->getvalA()->setInput(fwdA);
+    ereg->getvalB()->setInput(fwdB);
     return false; 
 }
 
@@ -109,7 +114,7 @@ uint64_t DecodeStage::set_d_dstM(uint64_t D_icode, uint64_t D_rA) {
     return RNONE;
 }
 
-// Just pass through the register values for now
+// Returns valA to be forwarded
 uint64_t DecodeStage::set_d_valA(uint64_t d_rvalA,E* ereg, 
     uint64_t d_srcA,M* mreg, W* wreg)
      { 
@@ -134,10 +139,10 @@ uint64_t DecodeStage::set_d_valA(uint64_t d_rvalA,E* ereg,
         }
     else
         {
-            return d_srcA;
+            return d_rvalA;
         }
  }
-
+//Returns valB to be forwarded
 uint64_t DecodeStage::set_d_valB(uint64_t d_rvalB, uint64_t d_srcB, E* ereg, M* mreg, W* wreg){
         
         uint64_t m_valE = mreg->getvalE()->getOutput();
