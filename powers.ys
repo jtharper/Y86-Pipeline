@@ -1,0 +1,78 @@
+# powers_nops
+.pos 0
+
+irmovq $1, %rax      # Initialize %rax with 2^0 = 1
+nop
+
+rrmovq %rax, %rcx    # Copy 2^0 into %rcx
+nop
+addq %rcx, %rcx      # Compute 2^1 = 2
+nop
+
+rrmovq %rcx, %rdx    # Copy 2^1 into %rdx
+nop
+addq %rdx, %rdx      # Compute 2^2 = 4
+nop
+
+rrmovq %rdx, %rbx
+nop
+addq %rbx, %rbx      # Compute 2^3 = 8
+nop
+
+rrmovq %rbx, %rsp
+nop
+addq %rsp, %rsp      # Compute 2^4 = 16
+nop
+
+rrmovq %rsp, %rbp
+nop
+addq %rbp, %rbp      # Compute 2^5 = 32
+nop
+
+rrmovq %rbp, %rsi
+nop
+addq %rsi, %rsi      # Compute 2^6 = 64
+nop
+
+rrmovq %rsi, %rdi
+nop
+addq %rdi, %rdi      # Compute 2^7 = 128
+nop
+
+rrmovq %rdi, %r8
+nop
+addq %r8, %r8        # Compute 2^8 = 256
+nop
+
+rrmovq %r8, %r9
+nop
+addq %r9, %r9        # Compute 2^9 = 512
+nop
+
+rrmovq %r9, %r10
+nop
+addq %r10, %r10      # Compute 2^10 = 1024
+nop
+
+rrmovq %r10, %r11
+nop
+addq %r11, %r11      # Compute 2^11 = 2048
+nop
+
+rrmovq %r11, %r12
+nop
+addq %r12, %r12      # Compute 2^12 = 4096
+nop
+
+rrmovq %r12, %r13
+nop
+addq %r13, %r13      # Compute 2^13 = 8192
+nop
+
+rrmovq %r13, %r14
+nop
+addq %r14, %r14      # Compute 2^14 = 16384
+nop
+
+halt                 # Stop execution
+
