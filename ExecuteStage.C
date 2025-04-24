@@ -28,7 +28,7 @@ bool ExecuteStage::doClockLow(PipeReg ** pregs, Stage ** stages)
     
     uint64_t ifun = ereg->getifun()->getOutput();
 
-    uint64_t e_cnd = 0;  // default condition flag
+    uint64_t e_cnd = cond(icode, ifun);  // default condition flag
     uint64_t E_valC = ereg->getvalC()->getOutput();
     uint64_t A = aluA(icode, valA, E_valC);
     uint64_t B = aluB(icode, valB);
@@ -37,7 +37,13 @@ bool ExecuteStage::doClockLow(PipeReg ** pregs, Stage ** stages)
     uint64_t result = alu(A,B,fn,docc);
 
     e_valE = result;
-    e_dstE = dstE;
+    if (icode == IRRMOVQ) {
+        e_dstE = e_cnd ? dstE : RNONE;
+    } else {
+        e_dstE = dstE;
+    }
+    
+
    
     // Pass the computed values to Memory stage (M register)
     setMInput(mreg, stat, icode, valA, e_valE, e_dstE, dstM, e_cnd);
@@ -172,4 +178,35 @@ uint64_t ExecuteStage::alu(uint64_t aluA,uint64_t aluB,uint64_t alufun, bool set
     }
 return returnValue;
         
+}
+
+// Determines the condition for cmovXX and jXX instructions
+// Returns 1 if the condition is met, 0 otherwise
+// icode: instruction code
+// ifun: function code
+// The function checks the condition codes (ZF, SF, OF) and returns the result
+// based on the instruction type. The function is only relevant for cmovXX and jXX instructions.
+// For other instructions, it returns 0 (unconditional).
+uint64_t ExecuteStage::cond(uint64_t icode, uint64_t ifun) {
+   
+
+    // Only relevant for cmovXX and jXX instructions
+    if (icode != IRRMOVQ && icode != IJXX) {
+        return 0;  // For other instructions, unconditional
+    }
+    bool error =false;
+    bool Zf = ConditionCodes::getInstance()->getConditionCode(ZF, error);
+    bool Sf = ConditionCodes::getInstance()->getConditionCode(SF, error);
+    bool Of = ConditionCodes::getInstance()->getConditionCode(OF, error);
+    
+    switch (ifun) {
+        case UNCOND:    return 1;
+        case LESSEQ:    return (Sf ^ Of) || Zf;
+        case LESS:      return (Sf ^ Of);
+        case EQUAL:     return Zf;
+        case NOTEQUAL:  return !Zf;
+        case GREATER:   return !(Sf ^ Of) && !Zf;
+        case GREATEREQ: return !(Sf ^ Of);
+        default:        return 0;  // Invalid ifun
+    }
 }

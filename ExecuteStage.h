@@ -17,10 +17,10 @@ class ExecuteStage: public Stage
       bool set_cc(uint64_t e_icode);
       void CC(bool _ZF, bool _SF, bool _OF);
       uint64_t alu(uint64_t aluA,uint64_t aluB,uint64_t alufun, bool setCC);
+      uint64_t cond(uint64_t icode, uint64_t ifun);
       uint64_t e_valE, e_dstE;
-      
 
-   public:
+  public:
       bool doClockLow(PipeReg ** pregs, Stage ** stages);
       void doClockHigh(PipeReg ** pregs);
 

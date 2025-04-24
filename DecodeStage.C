@@ -124,7 +124,7 @@ uint64_t DecodeStage::set_d_valA(uint64_t d_rvalA,E* ereg,
         uint64_t e_valE = ereg->getvalC()->getOutput();
         uint64_t m_dstE = mreg->getdstE()->getOutput();
         uint64_t w_valE = wreg->getvalE()->getOutput();
-
+    if (d_srcA == RNONE) return 0;
     if (d_srcA == e_dstE)
         {
             return e_valE;
@@ -151,7 +151,7 @@ uint64_t DecodeStage::set_d_valB(uint64_t d_rvalB, uint64_t d_srcB, E* ereg, M* 
         uint64_t e_valE = ereg->getvalC()->getOutput();
         uint64_t m_dstE = mreg->getdstE()->getOutput();
         uint64_t w_valE = wreg->getvalE()->getOutput();
-
+    if (d_srcB == RNONE) return 0;
     if (d_srcB == e_dstE)
         {
             return e_valE;

@@ -1,0 +1,78 @@
+                            | # powers_nops
+0x000:                      | .pos 0
+                            | 
+0x000: 30f00100000000000000 | irmovq $1, %rax      # Initialize %rax with 2^0 = 1
+0x00a: 10                   | nop
+                            | 
+0x00b: 2001                 | rrmovq %rax, %rcx    # Copy 2^0 into %rcx
+0x00d: 10                   | nop
+0x00e: 6011                 | addq %rcx, %rcx      # Compute 2^1 = 2
+0x010: 10                   | nop
+                            | 
+0x011: 2012                 | rrmovq %rcx, %rdx    # Copy 2^1 into %rdx
+0x013: 10                   | nop
+0x014: 6022                 | addq %rdx, %rdx      # Compute 2^2 = 4
+0x016: 10                   | nop
+                            | 
+0x017: 2023                 | rrmovq %rdx, %rbx
+0x019: 10                   | nop
+0x01a: 6033                 | addq %rbx, %rbx      # Compute 2^3 = 8
+0x01c: 10                   | nop
+                            | 
+0x01d: 2034                 | rrmovq %rbx, %rsp
+0x01f: 10                   | nop
+0x020: 6044                 | addq %rsp, %rsp      # Compute 2^4 = 16
+0x022: 10                   | nop
+                            | 
+0x023: 2045                 | rrmovq %rsp, %rbp
+0x025: 10                   | nop
+0x026: 6055                 | addq %rbp, %rbp      # Compute 2^5 = 32
+0x028: 10                   | nop
+                            | 
+0x029: 2056                 | rrmovq %rbp, %rsi
+0x02b: 10                   | nop
+0x02c: 6066                 | addq %rsi, %rsi      # Compute 2^6 = 64
+0x02e: 10                   | nop
+                            | 
+0x02f: 2067                 | rrmovq %rsi, %rdi
+0x031: 10                   | nop
+0x032: 6077                 | addq %rdi, %rdi      # Compute 2^7 = 128
+0x034: 10                   | nop
+                            | 
+0x035: 2078                 | rrmovq %rdi, %r8
+0x037: 10                   | nop
+0x038: 6088                 | addq %r8, %r8        # Compute 2^8 = 256
+0x03a: 10                   | nop
+                            | 
+0x03b: 2089                 | rrmovq %r8, %r9
+0x03d: 10                   | nop
+0x03e: 6099                 | addq %r9, %r9        # Compute 2^9 = 512
+0x040: 10                   | nop
+                            | 
+0x041: 209a                 | rrmovq %r9, %r10
+0x043: 10                   | nop
+0x044: 60aa                 | addq %r10, %r10      # Compute 2^10 = 1024
+0x046: 10                   | nop
+                            | 
+0x047: 20ab                 | rrmovq %r10, %r11
+0x049: 10                   | nop
+0x04a: 60bb                 | addq %r11, %r11      # Compute 2^11 = 2048
+0x04c: 10                   | nop
+                            | 
+0x04d: 20bc                 | rrmovq %r11, %r12
+0x04f: 10                   | nop
+0x050: 60cc                 | addq %r12, %r12      # Compute 2^12 = 4096
+0x052: 10                   | nop
+                            | 
+0x053: 20cd                 | rrmovq %r12, %r13
+0x055: 10                   | nop
+0x056: 60dd                 | addq %r13, %r13      # Compute 2^13 = 8192
+0x058: 10                   | nop
+                            | 
+0x059: 20de                 | rrmovq %r13, %r14
+0x05b: 10                   | nop
+0x05c: 60ee                 | addq %r14, %r14      # Compute 2^14 = 16384
+0x05e: 10                   | nop
+                            | 
+0x05f: 00                   | halt                 # Stop execution
+                            | 
