@@ -31,12 +31,17 @@ bool ExecuteStage::doClockLow(PipeReg ** pregs, Stage ** stages)
     uint64_t e_cnd = cond(icode, ifun);  // default condition flag
     uint64_t E_valC = ereg->getvalC()->getOutput();
     uint64_t A = aluA(icode, valA, E_valC);
+   
+
     uint64_t B = aluB(icode, valB);
     uint64_t fn = alufun(icode, ifun);
     bool docc = set_cc(icode);
+
     uint64_t result = alu(A,B,fn,docc);
+    
 
     e_valE = result;
+    
     if (icode == IRRMOVQ) {
         e_dstE = e_cnd ? dstE : RNONE;
     } else {
@@ -78,6 +83,8 @@ void ExecuteStage::setMInput(M* mreg, uint64_t stat, uint64_t icode, uint64_t va
 //Pass valA or valC depending on instruction
 uint64_t ExecuteStage::aluA(uint64_t e_icode,uint64_t e_valA,uint64_t e_valC)
 {
+    
+    
     if (e_icode == IRRMOVQ || e_icode == IOPQ)
     {
         return e_valA;
@@ -103,6 +110,8 @@ uint64_t ExecuteStage::aluA(uint64_t e_icode,uint64_t e_valA,uint64_t e_valC)
 //Return valB or zero depending on instruction
 uint64_t ExecuteStage::aluB(uint64_t e_icode,uint64_t e_valB)
 {
+
+
     if (e_icode == IRMMOVQ || e_icode == IMRMOVQ || e_icode == IOPQ || e_icode == ICALL || e_icode == IPUSHQ || e_icode == IRET || e_icode == IPOPQ)
     {
         return e_valB;

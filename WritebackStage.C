@@ -37,7 +37,14 @@ void WritebackStage::doClockHigh(PipeReg ** pregs)
     // Gets values from w register to write back to registers
     uint64_t W_valE = wreg->getvalE()->getOutput();
     uint64_t W_dstE = wreg->getdstE()->getOutput();
+    uint64_t W_valM = wreg->getvalM()->getOutput();
+    uint64_t W_dstM = wreg->getdstM()->getOutput();
+    uint64_t w_icode = wreg->geticode()->getOutput();
+   
+// Check if %rsp is correctly targeted for updating
+
 
     // Write the values into the register file
     RegisterFile::getInstance()->writeRegister(W_valE, W_dstE, placeholder);
+    RegisterFile::getInstance()->writeRegister(W_valM, W_dstM, placeholder);
 }
