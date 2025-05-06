@@ -36,9 +36,12 @@ bool FetchStage::doClockLow(PipeReg **pregs, Stage **stages)
 
     // Fetch the instruction byte
     uint64_t f_pc = selectPC((F *)pregs[FREG], (M *)pregs[MREG], (W *)pregs[WREG]);
+    
 
     bool mem_error = false;
     uint8_t instruction = Memory::getInstance()->getByte(f_pc, mem_error);
+
+
     if (mem_error) {
         stat = 1; // Assuming address error
         return false;
@@ -56,10 +59,14 @@ bool FetchStage::doClockLow(PipeReg **pregs, Stage **stages)
         getRegIds(&rA,&rB,f_pc);
        
     }
+    
 
     if(need_valC(icode))
     {
+        
+
         valC = buildValC(f_pc,needRegIds(icode));
+
        
     }
 
@@ -71,9 +78,12 @@ bool FetchStage::doClockLow(PipeReg **pregs, Stage **stages)
 
     // Predict next PC
     uint64_t f_predPC = predictPC(icode, valP, valC);
+ 
+
     freg->getpredPC()->setInput(f_predPC);
 
     // Pass inputs to D register
+    
     setDInput(dreg, stat, icode, ifun, rA, rB, valC, valP);
 
     return false;
@@ -136,7 +146,7 @@ bool FetchStage::needRegIds(uint64_t f_icode)
 
 bool FetchStage::need_valC(uint64_t f_icode)
 {
-   return (f_icode == IIRMOVQ || f_icode ==IJXX || f_icode==ICALL || f_icode ==IRMMOVQ || f_icode ==IRMMOVQ);
+   return (f_icode == IIRMOVQ || f_icode ==IJXX || f_icode==ICALL || f_icode ==IRMMOVQ || f_icode ==IMRMOVQ);
 } 
 
 //predictPC method: inputs are f_icode, f_valC, f_valP
@@ -172,16 +182,10 @@ uint64_t FetchStage::selectPC(F* freg, M* mreg, W* wreg)
 
 uint64_t FetchStage::PCincrement(uint64_t f_pc, bool regIdResult, bool valCr)
 {
-   if(valCr)
-   {
-      f_pc = f_pc + 8;
-   }
-   if(regIdResult)
-   {
-      f_pc = f_pc + 1;
-   }
-   f_pc = f_pc+1;
-   return f_pc;
+    uint64_t valP = f_pc + 1; // Always fetch instruction byte
+    if (regIdResult) valP += 1;
+    if (valCr) valP += 8;
+    return valP;
 }
 
 void FetchStage::getRegIds(uint64_t * rA, uint64_t * rB, uint64_t f_pc){
@@ -202,7 +206,7 @@ bool error = false;
 f_pc++; 
 
 if (needRegID) {
-    f_pc++;
+    f_pc+=1;
 }
 
 // Fetch 8 bytes into valC

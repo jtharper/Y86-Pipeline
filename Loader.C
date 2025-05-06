@@ -121,7 +121,8 @@ void Loader::loadLine(std::string line)
     bool imem_error;
     int32_t dataStart = DATABEGIN;
     
-    while (dataStart < line.size() && dataStart < COMMENT)
+    while (dataStart < static_cast<int32_t>(line.size()) && dataStart < COMMENT)
+
     {
         // Skip spaces in data section
         while (dataStart < COMMENT && isspace(line[dataStart]))
@@ -170,7 +171,7 @@ void Loader::loadLine(std::string line)
 int32_t Loader::convert(std::string line, int32_t start, int32_t len)
 {
     // Ensure the string does not go out of bounds
-    if (start + len > line.size()) {
+    if (start + len > static_cast<int32_t>(line.size())) {
         
         return -1;
     }
@@ -366,7 +367,8 @@ bool Loader::errorAddr(std::string line)
  */
 bool Loader::isSpaces(std::string line, int32_t start, int32_t end) {
     
-        for (int32_t i = start; i <= end && i < line.size(); i++) {
+    for (int32_t i = start; i <= end && i < static_cast<int32_t>(line.size()); i++) {
+
             
             if (line[i] != ' ' && line[i] != '\t') {
                 return false;

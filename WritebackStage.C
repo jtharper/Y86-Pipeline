@@ -17,13 +17,10 @@ bool WritebackStage::doClockLow(PipeReg ** pregs, Stage ** stages)
     uint64_t w_icode = wreg->geticode()->getOutput();
 
     // Check if there's an error or halt condition - We might need to update this after looking through lab 8
-    if (w_stat != SAOK) {
+    if (w_stat != SAOK || w_icode == IHALT) {
         return true; // Stops the simulation on error
     }
 
-    if (w_icode == IHALT) {
-        return true; 
-    }
 
     return false; // Continue normally 
 }
@@ -39,7 +36,7 @@ void WritebackStage::doClockHigh(PipeReg ** pregs)
     uint64_t W_dstE = wreg->getdstE()->getOutput();
     uint64_t W_valM = wreg->getvalM()->getOutput();
     uint64_t W_dstM = wreg->getdstM()->getOutput();
-    uint64_t w_icode = wreg->geticode()->getOutput();
+    
    
 // Check if %rsp is correctly targeted for updating
 

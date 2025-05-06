@@ -21,7 +21,7 @@ bool ExecuteStage::doClockLow(PipeReg ** pregs, Stage ** stages)
     
     uint64_t valA = ereg->getvalA()->getOutput();
     uint64_t valB = ereg->getvalB()->getOutput();
-   
+  
     uint64_t dstE = ereg->getdstE()->getOutput(); 
 
     uint64_t dstM = ereg->getdstM()->getOutput();
@@ -48,7 +48,7 @@ bool ExecuteStage::doClockLow(PipeReg ** pregs, Stage ** stages)
         e_dstE = dstE;
     }
     
-
+   
    
     // Pass the computed values to Memory stage (M register)
     setMInput(mreg, stat, icode, valA, e_valE, e_dstE, dstM, e_cnd);

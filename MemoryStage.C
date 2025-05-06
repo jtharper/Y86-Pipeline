@@ -26,7 +26,6 @@ bool MemoryStage::doClockLow(PipeReg ** pregs, Stage ** stages) {
     uint64_t addr = mem_addr(icode, valE, valA);
   
     bool mem_error = false;
-   
 
     if (mem_read(icode)) {
         valM = Memory::getInstance()->getLong(addr, mem_error);
@@ -67,7 +66,7 @@ void MemoryStage::setWinput(W * wreg, uint64_t stat, uint64_t icode, uint64_t va
     wreg->getstat()->setInput(stat);
     wreg->geticode()->setInput(icode);
     wreg->getvalE()->setInput(valE);
-    wreg->getvalM()->setInput(valM); // No data for now will probably need to update
+    wreg->getvalM()->setInput(valM); 
     wreg->getdstE()->setInput(dstE);
     wreg->getdstM()->setInput(dstM);
 }
