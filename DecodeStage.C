@@ -18,6 +18,7 @@ bool DecodeStage::doClockLow(PipeReg** pregs, Stage** stages) {
     M* mreg = static_cast<M*>(pregs[MREG]);
     W* wreg = static_cast<W*>(pregs[WREG]);
     ExecuteStage* estage = static_cast<ExecuteStage*>(stages[ESTAGE]);
+    MemoryStage* mstage = static_cast<MemoryStage*>(stages[MSTAGE]);
     // Pull instruction data from the D register
     uint64_t stat = dreg->getstat()->getOutput();
     uint64_t icode = dreg->geticode()->getOutput();
@@ -38,16 +39,15 @@ bool DecodeStage::doClockLow(PipeReg** pregs, Stage** stages) {
     // Read values from the register file
     uint64_t d_rvalA = RegisterFile::getInstance()->readRegister(d_srcA, unused);
     uint64_t d_rvalB = RegisterFile::getInstance()->readRegister(d_srcB, unused);
-    uint64_t fwdA = set_d_valA(d_rvalA, ereg, d_srcA, mreg, wreg, estage);
-    uint64_t fwdB = set_d_valB(d_rvalB, d_srcB, ereg, mreg, wreg, estage);
+    uint64_t fwdA = set_d_valA(d_rvalA, ereg, d_srcA, mreg, wreg, estage, mstage);
+    uint64_t fwdB = set_d_valB(d_rvalB, d_srcB, ereg, mreg, wreg, estage, mstage);
 
     // Pass the register values to the next stage (E stage)
    
-    setEInput(ereg, stat, icode, ifun, valC, d_dstE, d_dstM, d_srcA, d_srcB);
+    setEInput(ereg, stat, icode, ifun, valC, d_dstE, d_dstM, d_srcA, d_srcB, fwdA, fwdB);
     
 
-    ereg->getvalA()->setInput(fwdA);
-    ereg->getvalB()->setInput(fwdB);
+   
     return false; 
 }
 
@@ -71,15 +71,15 @@ void DecodeStage::doClockHigh(PipeReg ** pregs) {
 // Load values into the Execute register E stage
 void DecodeStage::setEInput(E * ereg, uint64_t stat, uint64_t icode, uint64_t ifun,
                             uint64_t valC,
-                            uint64_t dstE, uint64_t dstM, uint64_t srcA, uint64_t srcB) {
+                            uint64_t dstE, uint64_t dstM, uint64_t srcA, uint64_t srcB, uint64_t valA, uint64_t valB) {
 
                       
     ereg->getstat()->setInput(stat);
     ereg->geticode()->setInput(icode);
     ereg->getifun()->setInput(ifun);
     ereg->getvalC()->setInput(valC);
-    ereg->getvalA()->setInput(0); // start with 0
-    ereg->getvalB()->setInput(0); // start with 0
+    ereg->getvalA()->setInput(valA); // start with 0
+    ereg->getvalB()->setInput(valB); // start with 0
     ereg->getdstE()->setInput(dstE);
     ereg->getdstM()->setInput(dstM);
     ereg->getsrcA()->setInput(srcA);
@@ -123,58 +123,89 @@ uint64_t DecodeStage::set_d_dstM(uint64_t D_icode, uint64_t D_rA) {
 
 // Returns valA to be forwarded
 uint64_t DecodeStage::set_d_valA(uint64_t d_rvalA,E* ereg, 
-    uint64_t d_srcA,M* mreg, W* wreg, ExecuteStage* estage)
-     { 
-        uint64_t m_valE = mreg->getvalE()->getOutput();
+    uint64_t d_srcA,M* mreg, W* wreg, ExecuteStage* estage, MemoryStage* mstage) {
+        uint64_t m_valM = mstage->gete_mval();
         uint64_t w_dstE = wreg->getdstE()->getOutput();
         uint64_t e_dstE = ereg->getdstE()->getOutput();
         uint64_t e_valE = estage->gete_valE();
         uint64_t m_dstE = mreg->getdstE()->getOutput();
         uint64_t w_valE = wreg->getvalE()->getOutput();
-      
+        uint64_t m_dstM = mreg->getdstM()->getOutput();
+        uint64_t m_valE = mreg->getvalE()->getOutput();
+        uint64_t w_dstM = wreg->getdstM()->getOutput();
+        uint64_t w_valM = wreg->getvalM()->getOutput();
 
-    if (d_srcA == RNONE) return 0;
-    if (d_srcA == e_dstE && e_dstE != RNONE)
-        {
+
+        if (d_srcA == RNONE) return 0;
+
+        // Forward from Execute stage result
+        if (d_srcA == e_dstE && e_dstE != RNONE) {
             return e_valE;
         }
-    if (d_srcA == m_dstE && m_dstE != RNONE)
-        {
+        
+        // Forward from Memory stage ALU output
+        if (d_srcA == m_dstM ) {
+            
+
+            return m_valM;
+        }
+        if (d_srcA == m_dstE && m_dstE != RNONE) {
             return m_valE;
         }
-    if (d_srcA == w_dstE && w_dstE != RNONE)
-        {
+    
+        
+        // Forward from Writeback stage memory output
+        if (d_srcA == w_dstM && w_dstM != RNONE) {
+            return w_valM;
+        }
+        
+        // Forward from Writeback stage ALU output
+        if (d_srcA == w_dstE && w_dstE != RNONE) {
             return w_valE;
         }
-    else
-        {
-            return d_rvalA;
-        }
+        
+        // Default: use value read from register file
+        return d_rvalA;
+        
  }
 //Returns valB to be forwarded
-uint64_t DecodeStage::set_d_valB(uint64_t d_rvalB, uint64_t d_srcB, E* ereg, M* mreg, W* wreg, ExecuteStage* estage){
+uint64_t DecodeStage::set_d_valB(uint64_t d_rvalB, uint64_t d_srcB, E* ereg, M* mreg, W* wreg, ExecuteStage* estage, MemoryStage* mstage) {
         
         uint64_t m_valE = mreg->getvalE()->getOutput();
         uint64_t w_dstE = wreg->getdstE()->getOutput();
         uint64_t e_dstE = ereg->getdstE()->getOutput();
         uint64_t e_valE = estage -> gete_valE();
         uint64_t m_dstE = mreg->getdstE()->getOutput();
+        uint64_t m_dstM = mreg->getdstM()->getOutput();
+        uint64_t w_dstM = wreg->getdstM()->getOutput();
+        uint64_t w_valM = wreg->getvalM()->getOutput();
         uint64_t w_valE = wreg->getvalE()->getOutput();
-    if (d_srcB == RNONE) return 0;
-    if (d_srcB == e_dstE)
-        {
-            return e_valE;
-        }
-    if (d_srcB == m_dstE)
-        {
-            return m_valE;
-        }
-    if (d_srcB == w_dstE)
-        {
-            return w_valE;
-        }
-    else
-        {
-            return d_rvalB;
-        }
+        uint64_t m_valM = mstage->gete_mval(); 
+        if (d_srcB == RNONE) return 0;
+
+    // Forward from Execute stage result
+    if (d_srcB == e_dstE && e_dstE != RNONE) {
+        return e_valE;
+    }
+
+    // Forward from Memory stage ALU output
+    if (d_srcB == m_dstM && m_dstE != RNONE) {
+        return m_valM;
+    }
+    if (d_srcB == m_dstE && m_dstE != RNONE) {
+        return m_valE;
+    }
+
+    // Forward from Writeback stage memory output
+    if (d_srcB == w_dstM && w_dstM != RNONE) {
+        return w_valM;
+    }
+
+    // Forward from Writeback stage ALU output
+    if (d_srcB == w_dstE && w_dstE != RNONE) {
+        return w_valE;
+    }
+
+    // Default: use value read from register file
+    return d_rvalB;
     }

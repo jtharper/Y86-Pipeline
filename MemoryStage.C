@@ -14,14 +14,13 @@ bool MemoryStage::doClockLow(PipeReg ** pregs, Stage ** stages) {
     // Accessing memory and writeback stage pipeline registers
     M* mreg = static_cast<M*>(pregs[MREG]);
     W* wreg = static_cast<W*>(pregs[WREG]);
-
     // Gets the values stored in the M register
     uint64_t stat = mreg->getstat()->getOutput();
     uint64_t icode = mreg->geticode()->getOutput();
     uint64_t dstM = mreg->getdstM()->getOutput();
     uint64_t dstE = mreg->getdstE()->getOutput();
     uint64_t valE = mreg->getvalE()->getOutput();
-    uint64_t valM = 0;
+    valM = 0;
     uint64_t valA = mreg->getvalA()->getOutput();
     uint64_t addr = mem_addr(icode, valE, valA);
   
@@ -29,8 +28,9 @@ bool MemoryStage::doClockLow(PipeReg ** pregs, Stage ** stages) {
 
     if (mem_read(icode)) {
         valM = Memory::getInstance()->getLong(addr, mem_error);
+       
     }
-
+    
     if (mem_write(icode)) {
         Memory::getInstance()->putLong(valA, addr, mem_error);
     }
@@ -39,7 +39,7 @@ bool MemoryStage::doClockLow(PipeReg ** pregs, Stage ** stages) {
     }
     
 
-
+    
     // Passes values forward to the Writeback stage
     setWinput(wreg, stat, icode, valE, dstE, dstM, valM);
 
