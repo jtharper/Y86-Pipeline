@@ -1,0 +1,79 @@
+ .pos 0
+    # rdi → &list[0], rcx = 8-byte stride
+    irmovq list, %rdi
+    irmovq $8,    %rcx
+
+#1
+    mrmovq 0(%rdi), %rax    
+    nop                    
+    nop                    
+    rrmovq %rax, %rbx
+    irmovq $0,    %rdx
+    subq   %rax,  %rdx
+    andq   %rax,  %rax
+    cmovl  %rdx,  %rbx
+    rrmovq %rbx, %rax
+    rmmovq %rax, 0(%rdi)
+    addq   %rcx,    %rdi
+
+#2
+    mrmovq 0(%rdi), %rax
+    nop
+    nop
+    rrmovq %rax, %rbx
+    irmovq $0,    %rdx
+    subq   %rax,  %rdx
+    andq   %rax,  %rax
+    cmovl  %rdx,  %rbx
+    rrmovq %rbx, %rax
+    rmmovq %rax, 0(%rdi)
+    addq   %rcx,    %rdi
+
+#3
+    mrmovq 0(%rdi), %rax
+    nop
+    nop
+    rrmovq %rax, %rbx
+    irmovq $0,    %rdx
+    subq   %rax,  %rdx
+    andq   %rax,  %rax
+    cmovl  %rdx,  %rbx
+    rrmovq %rbx, %rax
+    rmmovq %rax, 0(%rdi)
+    addq   %rcx,    %rdi
+
+#4
+    mrmovq 0(%rdi), %rax
+    nop
+    nop
+    rrmovq %rax, %rbx
+    irmovq $0,    %rdx
+    subq   %rax,  %rdx
+    andq   %rax,  %rax
+    cmovl  %rdx,  %rbx
+    rrmovq %rbx, %rax
+    rmmovq %rax, 0(%rdi)
+    addq   %rcx,    %rdi
+
+#5
+    mrmovq 0(%rdi), %rax
+    nop
+    nop
+    rrmovq %rax, %rbx
+    irmovq $0,    %rdx
+    subq   %rax,  %rdx
+    andq   %rax,  %rax
+    cmovl  %rdx,  %rbx
+    rrmovq %rbx, %rax
+    rmmovq %rax, 0(%rdi)
+
+    halt
+
+    .align 8
+list:
+    .quad -2      # →  2
+    .quad  5      # →  5
+    .quad -15     # → 15
+    .quad   0     # →  0
+    .quad  -1     # →   1
+    
